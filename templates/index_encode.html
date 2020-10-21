@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title></title>
+    <style media="screen">
+
+      body{
+        background-color:#F0F8FF;
+      }
+
+      form{
+        margin:50px;
+        font-size:20px;
+      }
+      div{
+        margin:30px;
+        margin-top:40px;
+      }
+
+      label{
+        font-weight:bold;
+        margin-right:10px;
+      }
+      span{
+        margin-right:30px;
+      }
+
+      input{
+        padding:8px;
+      }
+      input:hover{
+        border:#5F9F9F 2px solid;
+        font-weight:bold;
+      }
+    </style>
+  </head>
+  <body>
+    <form action="{{url_for('encode_image')}}" method="POST" enctype="multipart/form-data">
+      <div>
+      <label for="key">Key : </label>
+      <input id="key" type="text" name="key" placeholder="Enter the 32 bit key">
+       </div> 
+      <div>
+        <span>
+      <label for="aes">AES</label>
+      <input type="radio" name="enc" id="aes" value="aes">
+      </span>
+       <span>
+         <label for="des">Bluefish</label>
+         <input type="radio" name="enc" id="des" value="bluefish">
+       </span>
+       <!-- <span>
+         <label for="lsb">LSB</label>
+         <input type="radio" name="enc" id="lsb">
+       </span> -->
+      </div>
+      <div>
+      <label for="message">Message : </label>
+      <input type="text" name="message" placeholder="Enter the message">
+      </div>
+      <div>
+      <label for="file">Select a file:</label>
+      <input type="file" name="file" />  
+      </div>
+      <div>
+      <input type="submit" name="" value="Submit">
+      </div>
+    </form>
+    <p>{{message}}</p>
+  </body>
+</html>

@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title></title>
+    <style media="screen">
+
+      body{
+        background-color:#F0F8FF;
+      }
+      button{
+        background-color:#C0D9D9;
+        border:#5F9F9F 2px solid;
+        padding:5px;
+        margin-right:50px;
+        font-size:20px;
+
+      }
+      button:hover
+      {
+        background-color:#5F9EA0;
+        border:#5F9F9F 2px solid;
+      }
+      div{
+          margin-top:20%;
+          margin-left:40%;
+      }
+    </style>
+  </head>
+  <body>
+      <p>Welcome , {{msg}}</p>
+      <form>
+    <div>
+    <a href="{{url_for('encode_image')}}"><button type="button" name="button">Encode</button></a>
+    <a href="{{url_for('decode_image')}}"><button type="button" name="button">Decode</button></a>
+    </div>
+  </form>
+  </body>
+</html>
