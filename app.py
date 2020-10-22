@@ -4,6 +4,7 @@ from PIL import Image
 import base64, re
 from Crypto.Cipher import AES
 from Crypto import Random
+import os
 app = Flask(__name__)
 app.secret_key = 'encryption'
 def convertToBinaryData(filename):
@@ -141,6 +142,7 @@ def encode(name,key,data):
     encode_enc(newimg, data)
     newimg.save(str('upload.png'))
     insertBLOB(session['username'],key,'upload.png')
+    os.remove('upload.png')
     
 
 # Decode the data in the image
@@ -178,6 +180,7 @@ def decode(name,key):
         if (pixels[-1] % 2 != 0):
             aes = AESCipher( key, 32)
             data = aes.decrypt( data )
+            os.remove('image.png')
             return data
 
 @app.route('/')
@@ -228,6 +231,7 @@ def login():
             msg = 'Incorrect username/password!'
     
     return render_template('index_login.html', msg=msg)
+
 @app.route('/logout')
 def logout():
     # Remove session data, this will log the user out
@@ -247,6 +251,7 @@ def encode_image():
         print(request.form['enc'])
         print(f.filename)
         message="done"
+        os.remove(f.filename)
         return render_template('index_encode.html',message=message)
     return render_template('index_encode.html')
 @app.route('/decode_image',methods=['POST','GET'])
