@@ -21,19 +21,28 @@
         background-color:#5F9EA0;
         border:#5F9F9F 2px solid;
       }
-      div{
+      #div1{
           margin-top:20%;
           margin-left:40%;
+      }
+      #name{
+          margin-top:10%;
+          margin-left:20%;
+      }
+      #div2{
+        border-style: solid;
       }
     </style>
   </head>
   <body>
-      <p>Welcome , {{msg}}</p>
+    <div id="div2">
+    <div id="name"><h1>Welcome , {{msg}}</h1></div>
+      <div id="div1">
       <form>
-    <div>
     <a href="{{url_for('encode_image')}}"><button type="button" name="button">Encode</button></a>
     <a href="{{url_for('decode_image')}}"><button type="button" name="button">Decode</button></a>
     </div>
+  </div>
   </form>
   </body>
 </html>

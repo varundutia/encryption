@@ -5,6 +5,8 @@ import base64, re
 from Crypto.Cipher import AES
 from Crypto import Random
 import os
+import chilkat
+
 app = Flask(__name__)
 app.secret_key = 'encryption'
 def convertToBinaryData(filename):
@@ -16,14 +18,14 @@ def writeTofile(data, filename):
     with open(filename, 'wb') as file:
         file.write(data)
     print("Stored blob data into: ", filename, "\n")
-def insertBLOB(name, key, photo):
+def insertBLOB(name, key, photo,enc_type):
     try:
         conn = sqlite3.connect('registerDB.db')
         cur = conn.cursor()
 
         empPhoto = convertToBinaryData(photo)
         # Convert data into tuple format
-        cur.execute('UPDATE REGISTER SET encrypted_img = ? , key = ? where name = ?',(empPhoto,key,name))
+        cur.execute('UPDATE REGISTER SET encrypted_img = ? , key = ?, enc_type=? where name = ?',(empPhoto,key,enc_type,name))
         conn.commit()
         print("Image and file inserted successfully as a BLOB into a table")
         cur.close()
@@ -34,7 +36,27 @@ def insertBLOB(name, key, photo):
         if (conn):
             conn.close()
             print("the sqlite connection is closed")
-            
+# def insertec_type(name, enc_type):
+#     try:
+#         if(enc_type==True):
+#             enc_type=100
+#         else:
+#             enc_type=200
+#         conn = sqlite3.connect('registerDB.db')
+#         cur = conn.cursor()
+#         # Convert data into tuple format
+#         cur.execute('UPDATE REGISTER SET enc_type = ? where name = ?',(enc_type,name))
+#         conn.commit()
+#         print("Image and file inserted successfully as a BLOB into a table")
+#         cur.close()
+
+#     except sqlite3.Error as error:
+#         print("Failed to insert blob data into sqlite table", error)
+#     finally:
+#         if (conn):
+#             conn.close()
+#             print("the sqlite connection is closed")
+
 class AESCipher:
     def __init__(self, key, blk_sz):
         self.key = key
@@ -132,21 +154,36 @@ def encode_enc(newimg, data):
             x += 1
 
 # Encode data into image
-def encode(name,key,data):
+def encode(name,key,data,enc_type):
     image = Image.open(name, 'r')
     if (len(data) == 0):
         raise ValueError('Data is empty')
-    aes = AESCipher( key, 32)
-    data = aes.encrypt(data)
+    if(enc_type==True):
+        # conn = sqlite3.connect('registerDB.db')
+        # cur = conn.cursor()
+        # cur.execute('UPDATE REGISTER SET enc_type = ? where name = ?',("1",name))
+        # conn.commit()
+        # cur.close()
+        # insertec_type(name,enc_type)
+        aes = AESCipher( key, 32)
+        data = aes.encrypt(data)
+    else:
+        # conn = sqlite3.connect('registerDB.db')
+        # cur = conn.cursor()
+        # cur.execute('UPDATE REGISTER SET enc_type = ? where name = ?',("0",name))
+        # conn.commit()  
+        # cur.close()
+        # insertec_type(name,enc_type)
+        data =encrypt_bf(key,data)
     newimg = image.copy()
     encode_enc(newimg, data)
     newimg.save(str('upload.png'))
-    insertBLOB(session['username'],key,'upload.png')
+    insertBLOB(session['username'],key,'upload.png',enc_type)
     os.remove('upload.png')
     
 
 # Decode the data in the image
-def decode(name,key):
+def decode(name,key,enc_type):
     conn = sqlite3.connect('registerDB.db')
     cur = conn.cursor()
     print(name)
@@ -178,10 +215,39 @@ def decode(name,key):
 
         data += chr(int(binstr, 2))
         if (pixels[-1] % 2 != 0):
-            aes = AESCipher( key, 32)
-            data = aes.decrypt( data )
+            if(enc_type==True):
+                aes = AESCipher( key, 32)
+                data = aes.decrypt( data )
+            else:
+                data=decrypt_bf(key,data)
             os.remove('image.png')
             return data
+def encrypt_bf(keyHex,data):
+    crypt = chilkat.CkCrypt2()
+    crypt.put_CryptAlgorithm("blowfish2")
+    crypt.put_CipherMode("cbc")
+    crypt.put_KeyLength(8)
+    crypt.put_PaddingScheme(0)
+    crypt.put_EncodingMode("hex")
+    ivHex = "0001020304050607"
+    crypt.SetEncodedIV(ivHex,"hex")
+    crypt.SetEncodedKey(keyHex,"hex")
+
+    encStr = crypt.encryptStringENC(data)
+    return encStr
+
+def decrypt_bf(keyHex,data):
+    crypt = chilkat.CkCrypt2()
+    crypt.put_CryptAlgorithm("blowfish2")
+    crypt.put_CipherMode("cbc")
+    crypt.put_KeyLength(8)
+    crypt.put_PaddingScheme(0)
+    crypt.put_EncodingMode("hex")
+    ivHex = "0001020304050607"
+    crypt.SetEncodedIV(ivHex,"hex")
+    crypt.SetEncodedKey(keyHex,"hex")
+    decStr = crypt.decryptStringENC((data))
+    return decStr
 
 @app.route('/')
 def home():
@@ -246,22 +312,40 @@ def encode_image():
     if request.method == 'POST':
         f = request.files['file']  
         f.save(f.filename)
-        encode(f.filename,request.form['key'],request.form['message'])
+        if(request.form['enc']=="aes"):
+            print(request.form['enc']+"encode")
+            encode(f.filename,request.form['key'],request.form['message'],True)
+        else:
+            print(request.form['enc']+"encode")
+            encode(f.filename,request.form['key'],request.form['message'],False)
         print(request.form['message'])
         print(request.form['enc'])
         print(f.filename)
-        message="done"
         os.remove(f.filename)
-        return render_template('index_encode.html',message=message)
+        return render_template('index_encode.html',message="Image encoded successfully")
     return render_template('index_encode.html')
 @app.route('/decode_image',methods=['POST','GET'])
 def decode_image():
     message=''
-    if request.method == 'POST':
-        print(request.form['key'])
-        message=decode(session['username'],request.form['key'])
-        return render_template('decode_image.html',message=message)
-    return render_template('decode_image.html')
+    name=session['username']
+    conn = sqlite3.connect('registerDB.db')
+    cur = conn.cursor()
+    cur.execute('SELECT * FROM REGISTER WHERE NAME ='+'"'+name+'"')
+        # Fetch one record and return result
+    account = cur.fetchone()
+    if(account[6]=="1"):
+        enc=True
+        if request.method == 'POST':
+            message=decode(session['username'],request.form['key'],enc)
+            return render_template('decode_image.html',enc="AES",message='The decoded message is: '+message)
+        return render_template('decode_image.html',enc="AES")
+    else:
+        enc=False
+        if request.method == 'POST':
+            message=decode(session['username'],request.form['key'],enc)
+            return render_template('decode_image.html',enc="BlowFish",message='The decoded message is: '+message)
+        return render_template('decode_image.html',enc="BlowFish")
+    # return render_template('decode_image.html')
 
 if __name__ == '__main__':
     app.run()

@@ -26,20 +26,22 @@
         margin-right:30px;
       }
 
-      input{
+      input,button{
         padding:8px;
       }
-      input:hover{
+      button:hover,input:hover{
         border:#5F9F9F 2px solid;
         font-weight:bold;
       }
     </style>
   </head>
   <body>
+    <h1>Encode</h1>
+    <h2>NOTE: Enter 32 bit key for AES encryption , Enter 4-56 bit key for BlowFish encryption</h2>
     <form action="{{url_for('encode_image')}}" method="POST" enctype="multipart/form-data">
       <div>
       <label for="key">Key : </label>
-      <input id="key" type="text" name="key" placeholder="Enter the 32 bit key">
+      <input id="key" type="text" name="key" placeholder="Enter the key">
        </div> 
       <div>
         <span>
@@ -47,8 +49,8 @@
       <input type="radio" name="enc" id="aes" value="aes">
       </span>
        <span>
-         <label for="des">Bluefish</label>
-         <input type="radio" name="enc" id="des" value="bluefish">
+         <label for="des">Blowfish</label>
+         <input type="radio" name="enc" id="des" value="blowfish">
        </span>
        <!-- <span>
          <label for="lsb">LSB</label>

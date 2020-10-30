@@ -4,9 +4,42 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
+    <style media="screen">
+
+        body{
+          background-color:#F0F8FF;
+        }
+  
+        form{
+          margin:50px;
+          font-size:20px;
+        }
+        div{
+          margin:30px;
+          margin-top:40px;
+        }
+  
+        label{
+          font-weight:bold;
+          margin-right:10px;
+        }
+        span{
+          margin-right:30px;
+        }
+  
+        input,button{
+          padding:8px;
+        }
+        input:hover,button:hover{
+          border:#5F9F9F 2px solid;
+          font-weight:bold;
+        }
+      </style>
 </head>
 <body>
     <div>
+        <h1>Decode</h1>
+        <h2>You have used {{enc}} algorithm for encryption</h2>
         <form action="/decode_image" method="POST">
         <input type="text" name="key" placeholder="Enter key to decode">
         <input type="submit" name="submit">
