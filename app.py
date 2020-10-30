@@ -36,26 +36,6 @@ def insertBLOB(name, key, photo,enc_type):
         if (conn):
             conn.close()
             print("the sqlite connection is closed")
-# def insertec_type(name, enc_type):
-#     try:
-#         if(enc_type==True):
-#             enc_type=100
-#         else:
-#             enc_type=200
-#         conn = sqlite3.connect('registerDB.db')
-#         cur = conn.cursor()
-#         # Convert data into tuple format
-#         cur.execute('UPDATE REGISTER SET enc_type = ? where name = ?',(enc_type,name))
-#         conn.commit()
-#         print("Image and file inserted successfully as a BLOB into a table")
-#         cur.close()
-
-#     except sqlite3.Error as error:
-#         print("Failed to insert blob data into sqlite table", error)
-#     finally:
-#         if (conn):
-#             conn.close()
-#             print("the sqlite connection is closed")
 
 class AESCipher:
     def __init__(self, key, blk_sz):
@@ -159,21 +139,9 @@ def encode(name,key,data,enc_type):
     if (len(data) == 0):
         raise ValueError('Data is empty')
     if(enc_type==True):
-        # conn = sqlite3.connect('registerDB.db')
-        # cur = conn.cursor()
-        # cur.execute('UPDATE REGISTER SET enc_type = ? where name = ?',("1",name))
-        # conn.commit()
-        # cur.close()
-        # insertec_type(name,enc_type)
         aes = AESCipher( key, 32)
         data = aes.encrypt(data)
     else:
-        # conn = sqlite3.connect('registerDB.db')
-        # cur = conn.cursor()
-        # cur.execute('UPDATE REGISTER SET enc_type = ? where name = ?',("0",name))
-        # conn.commit()  
-        # cur.close()
-        # insertec_type(name,enc_type)
         data =encrypt_bf(key,data)
     newimg = image.copy()
     encode_enc(newimg, data)
