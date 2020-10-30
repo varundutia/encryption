@@ -1,48 +1,47 @@
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
   <head>
-    <meta charset="utf-8">
+    <meta charset="utf-8" />
     <title></title>
     <style media="screen">
-
-      body{
-        background-color:#F0F8FF;
+      body {
+        background-color: #f0f8ff;
       }
-      button{
-        background-color:#C0D9D9;
-        border:#5F9F9F 2px solid;
-        padding:5px;
-        margin-right:50px;
-        font-size:20px;
-
+      button {
+        background-color: #c0d9d9;
+        border: #5f9f9f 2px solid;
+        padding: 5px;
+        margin-right: 50px;
+        font-size: 20px;
       }
-      button:hover
-      {
-        background-color:#5F9EA0;
-        border:#5F9F9F 2px solid;
+      button:hover {
+        background-color: #5f9ea0;
+        border: #5f9f9f 2px solid;
       }
-      #div1{
-          margin-top:20%;
-          margin-left:40%;
+      #div1 {
+        margin-top: 10%;
+        margin-left: 40%;
       }
-      #name{
-          margin-top:10%;
-          margin-left:20%;
-      }
-      #div2{
-        border-style: solid;
+      #name {
+        margin-top: 10%;
+        margin-left: 20%;
       }
     </style>
   </head>
   <body>
     <div id="div2">
-    <div id="name"><h1>Welcome , {{msg}}</h1></div>
+      <div id="name"><h1>Welcome , {{msg}}</h1></div>
       <div id="div1">
-      <form>
-    <a href="{{url_for('encode_image')}}"><button type="button" name="button">Encode</button></a>
-    <a href="{{url_for('decode_image')}}"><button type="button" name="button">Decode</button></a>
+        <a href="{{url_for('encode_image')}}"
+          ><button type="button" name="button">Encode</button></a
+        >
+        <a href="{{url_for('decode_image')}}"
+          ><button type="button" name="button">Decode</button></a
+        >
+      </div>
+      <div style="margin-left: 45%;margin-top: 5%;">
+        <a href="{{url_for('logout')}}"><button>Logout</button></a>
+      </div>
     </div>
-  </div>
-  </form>
   </body>
 </html>
