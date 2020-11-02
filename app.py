@@ -2,11 +2,9 @@ from flask import Flask, render_template, request,session,url_for,redirect
 import sqlite3
 from PIL import Image
 import base64, re
-from Crypto.Cipher import AES
-from Crypto import Random
 import os
 import chilkat
-
+import shutil
 app = Flask(__name__)
 app.secret_key = 'encryption'
 def convertToBinaryData(filename):
@@ -36,28 +34,6 @@ def insertBLOB(name, key, photo,enc_type):
         if (conn):
             conn.close()
             print("the sqlite connection is closed")
-
-class AESCipher:
-    def __init__(self, key, blk_sz):
-        self.key = key
-        self.blk_sz = blk_sz
-
-    def encrypt( self, raw ):
-        if raw is None or len(raw) == 0:
-            raise NameError("No value given to encrypt")
-        raw = raw + '\0' * (self.blk_sz - len(raw) % self.blk_sz)
-        raw = raw.encode('utf-8')
-        iv = Random.new().read( AES.block_size )
-        cipher = AES.new( self.key.encode('utf-8'), AES.MODE_CBC, iv )
-        return base64.b64encode( iv + cipher.encrypt( raw ) ).decode('utf-8')
-
-    def decrypt( self, enc ):
-        if enc is None or len(enc) == 0:
-            raise NameError("No value given to decrypt")
-        enc = base64.b64decode(enc)
-        iv = enc[:16]
-        cipher = AES.new(self.key.encode('utf-8'), AES.MODE_CBC, iv )
-        return re.sub(b'\x00*$', b'', cipher.decrypt( enc[16:])).decode('utf-8')
 
 # Convert encoding data into 8-bit binary
 # form using ASCII value of characters
@@ -139,15 +115,18 @@ def encode(name,key,data,enc_type):
     if (len(data) == 0):
         raise ValueError('Data is empty')
     if(enc_type==True):
-        aes = AESCipher( key, 32)
-        data = aes.encrypt(data)
+        data= encrypt_AES(key,data)
     else:
         data =encrypt_bf(key,data)
     newimg = image.copy()
     encode_enc(newimg, data)
-    newimg.save(str('upload.png'))
-    insertBLOB(session['username'],key,'upload.png',enc_type)
-    os.remove('upload.png')
+    newimg.save(str('static/upload.png'))
+    insertBLOB(session['username'],key,'static/upload.png',enc_type)
+    size2=os.stat('static/upload.png').st_size
+    # os.rename('upload.png', 'static/upload.png')
+    # shutil.move('upload.png', 'static/upload.png')
+    # os.replace('upload.png', 'static/upload.png')
+    return size2
     
 
 # Decode the data in the image
@@ -184,12 +163,37 @@ def decode(name,key,enc_type):
         data += chr(int(binstr, 2))
         if (pixels[-1] % 2 != 0):
             if(enc_type==True):
-                aes = AESCipher( key, 32)
-                data = aes.decrypt( data )
+                data=decrypt_AES(key,data)
             else:
                 data=decrypt_bf(key,data)
             os.remove('image.png')
             return data
+        
+def encrypt_AES(keyHex,data):
+    crypt = chilkat.CkCrypt2()
+    crypt.put_CryptAlgorithm("aes")
+    crypt.put_CipherMode("cbc")
+    crypt.put_KeyLength(8)
+    crypt.put_PaddingScheme(0)
+    crypt.put_EncodingMode("hex")
+    ivHex = "0001020304050607"
+    crypt.SetEncodedIV(ivHex,"hex")
+    crypt.SetEncodedKey(keyHex,"hex")
+    encStr = crypt.encryptStringENC(data)
+    return encStr
+
+def decrypt_AES(keyHex,data):
+    crypt = chilkat.CkCrypt2()
+    crypt.put_CryptAlgorithm("aes")
+    crypt.put_CipherMode("cbc")
+    crypt.put_KeyLength(8)
+    crypt.put_PaddingScheme(0)
+    crypt.put_EncodingMode("hex")
+    ivHex = "0001020304050607"
+    crypt.SetEncodedIV(ivHex,"hex")
+    crypt.SetEncodedKey(keyHex,"hex")
+    decStr = crypt.decryptStringENC(data)
+    return decStr
 def encrypt_bf(keyHex,data):
     crypt = chilkat.CkCrypt2()
     crypt.put_CryptAlgorithm("blowfish2")
@@ -280,17 +284,19 @@ def encode_image():
     if request.method == 'POST':
         f = request.files['file']  
         f.save(f.filename)
+        size1=os.stat(f.filename).st_size
         if(request.form['enc']=="aes"):
             print(request.form['enc']+"encode")
-            encode(f.filename,request.form['key'],request.form['message'],True)
+            size2=encode(f.filename,request.form['key'],request.form['message'],True)
         else:
             print(request.form['enc']+"encode")
-            encode(f.filename,request.form['key'],request.form['message'],False)
+            size2=encode(f.filename,request.form['key'],request.form['message'],False)
         print(request.form['message'])
         print(request.form['enc'])
         print(f.filename)
         os.remove(f.filename)
-        return render_template('index_encode.html',message="Image encoded successfully")
+        print(os.getcwd()+'\ upload.png');
+        return render_template('index_encode.html',message="Image encoded successfully",size1="Size of the original Image: "+str(size1)+" bytes",size2="Size of the encrypted Image: "+str(size2)+" bytes",image_dir=os.getcwd()+"\ upload.png");
     return render_template('index_encode.html')
 @app.route('/decode_image',methods=['POST','GET'])
 def decode_image():
@@ -315,5 +321,6 @@ def decode_image():
         return render_template('decode_image.html',enc="BlowFish")
     # return render_template('decode_image.html')
 
+    
 if __name__ == '__main__':
     app.run()

@@ -37,7 +37,6 @@
   </head>
   <body>
     <h1>Encode</h1>
-    <h2>NOTE: Enter 32 bit key for AES encryption , Enter 4-56 bit key for BlowFish encryption</h2>
     <form action="{{url_for('encode_image')}}" method="POST" enctype="multipart/form-data">
       <div>
       <label for="key">Key : </label>
@@ -74,5 +73,10 @@
       <a href="{{url_for('logout')}}"><button>Logout</button></a>
       </div>
     <p>{{message}}</p>
+    <h3>{{size1}}</h3>
+    <h3>{{size2}}</h3>
+    <a href="static\upload.png" download>
+      <button>download</button>
+    </a>
     </body>
 </html>
