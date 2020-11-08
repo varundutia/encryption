@@ -16,14 +16,14 @@ def writeTofile(data, filename):
     with open(filename, 'wb') as file:
         file.write(data)
     print("Stored blob data into: ", filename, "\n")
-def insertBLOB(name, key, photo,enc_type):
+def insertBLOB(name, key, photo,enc_type,text):
     try:
         conn = sqlite3.connect('registerDB.db')
         cur = conn.cursor()
 
         empPhoto = convertToBinaryData(photo)
         # Convert data into tuple format
-        cur.execute('UPDATE REGISTER SET encrypted_img = ? , key = ?, enc_type=? where name = ?',(empPhoto,key,enc_type,name))
+        cur.execute('UPDATE REGISTER SET encrypted_img = ? , key = ?, enc_type=? ,encrypted_text=? where name = ?',(empPhoto,key,enc_type,text,name))
         conn.commit()
         print("Image and file inserted successfully as a BLOB into a table")
         cur.close()
@@ -110,7 +110,7 @@ def encode_enc(newimg, data):
             x += 1
 
 # Encode data into image
-def encode(name,key,data,enc_type):
+def encode(name,key,data,enc_type,text):
     image = Image.open(name, 'r')
     if (len(data) == 0):
         raise ValueError('Data is empty')
@@ -121,7 +121,7 @@ def encode(name,key,data,enc_type):
     newimg = image.copy()
     encode_enc(newimg, data)
     newimg.save(str('static/upload.png'))
-    insertBLOB(session['username'],key,'static/upload.png',enc_type)
+    insertBLOB(session['username'],key,'static/upload.png',enc_type,text)
     size2=os.stat('static/upload.png').st_size
     # os.rename('upload.png', 'static/upload.png')
     # shutil.move('upload.png', 'static/upload.png')
@@ -287,10 +287,10 @@ def encode_image():
         size1=os.stat(f.filename).st_size
         if(request.form['enc']=="aes"):
             print(request.form['enc']+"encode")
-            size2=encode(f.filename,request.form['key'],request.form['message'],True)
+            size2=encode(f.filename,request.form['key'],request.form['message'],True,request.form['message'])
         else:
             print(request.form['enc']+"encode")
-            size2=encode(f.filename,request.form['key'],request.form['message'],False)
+            size2=encode(f.filename,request.form['key'],request.form['message'],False,request.form['message'])
         print(request.form['message'])
         print(request.form['enc'])
         print(f.filename)
