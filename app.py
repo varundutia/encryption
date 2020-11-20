@@ -5,6 +5,7 @@ import base64, re
 import os
 import chilkat
 import shutil
+import base64
 app = Flask(__name__)
 app.secret_key = 'encryption'
 def convertToBinaryData(filename):
@@ -233,7 +234,9 @@ def register():
         d=request.form
         conn = sqlite3.connect('registerDB.db')
         cur = conn.cursor()
-        cur.execute('INSERT INTO REGISTER  (name, email,password) VALUES (?, ?, ?)',(d['name'],d['email'],d['pw']))
+        password = d['pw'].encode("utf-8")
+        password = base64.b64encode(password)
+        cur.execute('INSERT INTO REGISTER  (name, email,password) VALUES (?, ?, ?)',(d['name'],d['email'],encoded))
         cur.execute('SELECT name, email FROM REGISTER')
         for row in cur:
             print(row)
@@ -254,7 +257,9 @@ def login():
         print(password)
         conn = sqlite3.connect('registerDB.db')
         cur = conn.cursor()
-        cur.execute('SELECT * FROM REGISTER WHERE email = ? AND password = ?', (username, password))
+        password = password.encode("utf-8")
+        password = base64.b64encode(password)
+        cur.execute('SELECT * FROM REGISTER WHERE email = ? AND password = ?', (username, ))
         # Fetch one record and return result
         account = cur.fetchone()
         if account:
